@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KlickiBuntiTimeline</title>
+<style>
+*{box-sizing:border-box}html,body{height:100%}body{margin:0;display:flex;flex-direction:column;font:14px system-ui,"Segoe UI",Arial,sans-serif;color:#1b1b1b}
+header{flex:none;display:flex;align-items:center;gap:14px;height:48px;padding:0 16px;background:#0a2540;color:#fff;border-bottom:4px solid;border-image:linear-gradient(90deg,#f26b1d,#0072bc,#1a9e8f,#7b3fa0,#c8102e) 1}
+header b{font-size:23px;letter-spacing:.02em}header small{opacity:.65;margin-left:auto}
+#wrap{flex:1;display:flex;min-height:0}
+#side{width:370px;overflow:auto;padding:8px 12px;border-right:1px solid #d0d7df;background:#fff}
+#main{flex:1;display:flex;flex-direction:column;min-width:0}
+#bar,#pal{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:7px 12px;border-bottom:1px solid #d0d7df;background:#fff}
+#view{flex:1;overflow:auto;padding:14px;background:#dfe5ec}#view svg{max-width:100%;height:auto;background:#fff;box-shadow:0 1px 6px #0004}
+details{border-bottom:1px solid #e3e8ee;padding:4px 0}summary{cursor:pointer;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:#0a2540;padding:5px 0}
+details>div{padding:4px 0 8px}
+textarea{font:inherit;padding:4px 8px;border:1px solid #b9c3cf;border-radius:5px;width:100%}
+button,select,input{font:inherit;padding:4px 8px;border:1px solid #b9c3cf;border-radius:5px;background:#fff;min-width:0}button{cursor:pointer}button:hover{background:#eef2f6}
+button.p{background:#0a2540;color:#fff;border-color:#0a2540}button.on{background:#f26b1d;color:#fff;border-color:#f26b1d}
+input[type=text],input:not([type]),select{width:100%}input[type=color]{padding:0;width:34px;height:28px}input[type=checkbox]{width:auto}
+.f{display:grid;grid-template-columns:92px 1fr;gap:4px;margin:4px 0;align-items:center}
+.rw{border-bottom:1px dashed #d0d7df;margin-bottom:6px;padding-bottom:5px}.l1{display:grid;grid-template-columns:1fr 1fr;gap:3px}
+.l2{display:grid;grid-template-columns:auto auto 1fr auto auto;gap:3px;margin-top:3px}.l2 select{width:auto;max-width:96px}.l2 button{padding:2px 7px}
+.sg{display:grid;grid-template-columns:auto 1fr auto;gap:3px;margin-bottom:3px}.pr{display:grid;grid-template-columns:50px 1fr;gap:3px;margin-bottom:3px}
+.te input{width:auto}.te input[type=number]{width:54px}.te .of{display:block;margin-top:3px;white-space:nowrap}
+.lkr{display:grid;grid-template-columns:auto 1fr auto;gap:4px;margin:3px 0;align-items:center;font-size:12px}.bt{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0}
+.cp{display:grid;grid-template-columns:repeat(3,30px);gap:2px}.cp button{padding:2px 0}.cp button.on{background:#0a2540;border-color:#0a2540}
+.ph{display:flex;align-items:center;gap:5px;padding:2px 8px 2px 2px;border-radius:14px;cursor:pointer}.ph i{min-width:22px;height:22px;padding:0 3px;border-radius:11px;color:#fff;font:700 10px/22px Arial;text-align:center;font-style:normal}
+.ph.on{outline:2px solid #f26b1d;background:#fff3ea}#st{color:#c8102e;font-size:12px;min-height:16px;margin:4px 0}.s{color:#6b7a8c;font-size:12px}
+@media print{header,#side,#bar,#pal{display:none}body{display:block;height:auto}#wrap{display:block}#view{padding:0;background:#fff}#view svg{box-shadow:none;width:100%}@page{size:landscape;margin:8mm}}
+</style></head><body>
+<header><b id="logo">KlickiBuntiTimeline</b><small>Create attack timelines · PNG / PDF / PowerPoint export</small></header>
+<div id="wrap">
+<div id="side">
+ <details open><summary>Project</summary><div>
+  <div class="f"><label>Title</label><input id="title"></div>
+  <div class="f"><label>T0 (UTC)</label><span style="display:flex;gap:4px"><input type="datetime-local" id="t0"><button id="t0x" title="Clear T0">×</button></span></div>
+  <div class="s">With a T0 date the column headers show real dates and times; without it they show offsets (+3 h, Day 2 …).</div></div></details>
+ <details open><summary>Selected item</summary><div id="ed"></div></details>
+ <details open><summary>Time span</summary><div>
+  <div class="f"><label>Span</label><select id="span"></select></div>
+  <div class="f" id="cu" hidden><label>Custom</label><input id="cust" placeholder="36h | 6h:30min | 16w:1w | 5y:3mo"></div>
+  <label><input type="checkbox" id="snap"> Snap events to grid columns</label>
+  <div class="s">Custom: total[:grid], units min / h / d / w / mo (30 days), 1-60 columns.</div></div></details>
+ <details><summary>Display</summary><div>
+  <label><input type="checkbox" id="lg"> Show legend above the table</label><br>
+  <label><input type="checkbox" id="lgu"> Legend: only icons in use</label>
+  <div class="f"><label>Arrow style</label><select id="ls"><option value="elbow">Tree (elbow)</option><option value="straight">Straight</option></select></div>
+  <div class="s" style="margin-top:6px">Rename icons (code / name, also used in the legend):</div><div id="prn"></div><button id="prr">Reset names</button></div></details>
+ <details open><summary>Systems</summary><div>
+  <div class="f"><label>Count</label><input id="ns" type="number" min="1" max="60" style="width:80px"></div>
+  <label><input type="checkbox" id="seg"> Group by network segments</label>
+  <div id="rows" style="margin-top:6px"></div><button id="addr">+ System</button>
+  <div class="s">Status: Normal / Compromised / Attacker device. Users: comma-separated names split the system into one lane per user.</div></div></details>
+ <details id="segd" hidden open><summary>Network segments</summary><div><div id="segs"></div><button id="adds">+ Segment</button></div></details>
+ <div id="st"></div>
+</div>
+<div id="main">
+ <div id="bar">
+  <button id="new">New</button><button id="open">Open…</button><button id="save" class="p">Save</button><button id="ex">Load example</button><input type="file" id="file" accept=".json" hidden>
+  <span class="s">|</span><button id="addn">＋ Text field</button><button id="addb">＋ Time bar</button><button id="addm">＋ Marker</button>
+  <span class="s">|</span><button id="png">Export PNG</button><button id="pdf">Export PDF</button><button id="pdfa">PDF: all spans</button><button id="prt">Print / vector PDF</button>
+  <span class="s">|</span><button id="ppt">Export PowerPoint</button><button id="ppta">PPTX: all spans</button>
+ </div>
+ <div id="pal"></div>
+ <div id="view"></div>
+</div></div>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const PH=[["IA","Initial Access","#0072BC"],["EX","Execution","#0072BC"],["PE","Persistence","#7B3FA0"],["PR","Privilege Escalation","#7B3FA0"],["DE","Defense Evasion","#7B3FA0"],["CA","Credential Access","#F26B1D"],["DI","Discovery","#F26B1D"],["LM","Lateral Movement","#C8102E"],["C2","Command & Control","#C8102E"],["CO","Collection","#0A2540"],["XF","Exfiltration","#0A2540"],["IM","Impact","#0A2540"],["DT","Detection","#1A9E8F"],["CT","Containment","#1A9E8F"],["ER","Eradication","#1A9E8F"],["?","Open question","#8A94A0"]];
+const ph=(S,i)=>{const d=PH[i]||PH[0],o=(S.pn||{})[i]||{};return{c:o.c||d[0],n:o.n||d[1],col:d[2]}};
+const DIR={N:[0,-1],S:[0,1],E:[1,0],W:[-1,0],NE:[1,-1],NW:[-1,-1],SE:[1,1],SW:[-1,1]};
+const SEGC=["#6B7A8C","#0072BC","#7B3FA0","#0A2540","#1A9E8F","#F26B1D","#C8102E"],MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const U={min:1,h:60,d:1440,w:10080,mo:43200},UN={min:"minutes",h:"hours",d:"days",w:"weeks",mo:"months"};
+const SP=[["1h","60min:5min","1 hour"],["3h","3h:15min","3 hours"],["6h","6h:30min","6 hours"],["12h","12h:1h","12 hours"],["24h","24h:1h","24 hours"],["2d","2d:4h","2 days"],["3d","3d:6h","3 days"],["1w","7d:1d","1 week"],["2w","14d:1d","2 weeks"],["3w","21d:1d","3 weeks"],["1m","30d:1d","1 month"],["2m","9w:1w","2 months"],["3m","13w:1w","3 months"],["6m","26w:1w","6 months"],["12m","12mo:1mo","12 months"],["18m","18mo:1mo","18 months"],["2y","24mo:1mo","2 years"],["3y","36mo:1mo","3 years"]];
+const PRE=Object.fromEntries(SP.map(x=>[x[0],x[1]])),NAMES=Object.fromEntries(SP.map(x=>[x[0],x[2]]));
+function span(tok){tok=String(tok).trim().toLowerCase();let[a,b]=(PRE[tok]||tok).split(":"),m=/^(\d+)(min|mo|h|d|w)$/.exec(a||"");if(!m)throw"Invalid span: "+tok;b=b||(m[2]=="min"?"5min":"1"+m[2]);const k=/^(\d+)(min|mo|h|d|w)$/.exec(b);if(!k)throw"Invalid grid: "+b;const tot=m[1]*U[m[2]],st=k[1]*U[k[2]],n=tot/st;if(!Number.isInteger(n)||n<1||n>60)throw"Time span / grid must give 1-60 whole columns";return{tot,st,n,u:k[2],sn:+k[1],name:NAMES[tok]||`${m[1]} ${UN[m[2]]}`}}
+const t0ms=S=>{const m=/^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d)$/.exec(S.t0||"");return m?Date.UTC(+m[1],m[2]-1,+m[3],+m[4],+m[5]):null};
+const pad=n=>String(n).padStart(2,"0"),fmtDT=ms=>new Date(ms).toISOString().slice(0,16).replace("T"," ");
+function colLab(sp,i,cw,T0){const v=i*sp.sn;
+ if(T0==null)return["",sp.u=="min"||sp.u=="h"?`+${v} ${sp.u}`:sp.u=="d"?(cw>=50?`Day ${v+1}`:`${v+1}`):sp.u=="w"?(cw>=55?`Week ${v+1}`:cw>=38?`Wk ${v+1}`:`${v+1}`):(cw>=55?`Month ${v+1}`:`M${v+1}`)];
+ const d=new Date(T0+i*sp.st*60000),dm=`${d.getUTCDate()} ${MON[d.getUTCMonth()]}`,ym=`${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+ if(sp.u=="min"||sp.u=="h")return[dm,`${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`];
+ if(sp.u=="d")return[ym,cw>=44?dm:String(d.getUTCDate())];if(sp.u=="w")return[ym,cw>=50?dm:String(d.getUTCDate())];
+ return[String(d.getUTCFullYear()),MON[d.getUTCMonth()]]}
+const def=()=>({v:2,title:"KlickiBunti Timeline",t0:"",span:"24h",seg:false,snap:false,ls:"elbow",lg:{on:false,used:true},pn:{},
+ segs:["Internet / DMZ","Client network","Server network","Tier 0 / DC"].map((n,i)=>({n,c:SEGC[i]})),
+ rows:Array.from({length:8},(_,i)=>({id:i+1,n:"System "+(i+1),i:"IP · Role · OS",s:Math.floor(i/2),k:0,u:[]})),ev:[],lk:[],nt:[],bar:[],mk:[],nid:50});
+function norm(x){const d=Object.assign(def(),x);d.lg=Object.assign({on:false,used:true},x.lg||{});d.pn=x.pn||{};d.segs=(d.segs||[]).map((g,i)=>typeof g=="string"?{n:g,c:SEGC[i%7]}:g);
+ let m=0;d.rows=d.rows.map(r=>({k:0,u:[],...r}));d.rows.forEach(r=>{if(!r.id)r.id=++m;m=Math.max(m,r.id)});["ev","lk","nt","bar","mk"].forEach(k=>d[k]=d[k]||[]);
+ if(!/^\d{4}-\d\d-\d\dT\d\d:\d\d$/.test(d.t0||""))d.t0="";d.nid=Math.max(d.nid||0,m,...[...d.ev,...d.nt,...d.bar,...d.mk].map(o=>o.id||0))+1;return d}
+let S=def(),G={},SEL=null,tool=null,linkFrom=null,drag=null;
+try{const x=JSON.parse(localStorage.getItem("kbt")||"null");if(x&&x.rows)S=norm(x)}catch{}
+const keep=()=>{try{localStorage.setItem("kbt",JSON.stringify(S))}catch{}};
+const cut=(s,n)=>{s=String(s??"");return s.length>n?s.slice(0,Math.max(1,n-1))+"…":s};
+const EXAMPLE={"v":2,"title":"Example: Lateral movement LAN \u2192 Admin \u2192 Server \u2192 DMZ \u2192 Ransomware Deployment","t0":"2026-03-02T08:00","span":"1m","seg":true,"snap":false,"ls":"elbow","lg":{"on":true,"used":true},"pn":{},"segs":[{"n":"Internet","c":"#6B7A8C"},{"n":"LAN (clients)","c":"#0072BC"},{"n":"Admin network","c":"#7B3FA0"},{"n":"Server network","c":"#0A2540"},{"n":"DMZ","c":"#F26B1D"}],"rows":[{"id":1,"n":"ATTACKER-C2","i":"Cobalt Strike team server \u00b7 203.0.113.50","s":0,"k":2,"u":[]},{"id":2,"n":"WKS-0417","i":"HR laptop \u00b7 Win 11 \u00b7 10.10.4.17","s":1,"k":1,"u":["j.doe"]},{"id":3,"n":"WKS-0233","i":"Sales laptop \u00b7 Win 11 \u00b7 10.10.4.33","s":1,"k":0,"u":[]},{"id":4,"n":"ADM-JMP01","i":"Jump host \u00b7 Win 2022 \u00b7 10.20.1.10","s":2,"k":1,"u":["adm_ops","svc_backup"]},{"id":5,"n":"ADM-WKS02","i":"Admin workstation \u00b7 Win 11","s":2,"k":0,"u":[]},{"id":12,"n":"SIEM / EDR","i":"Detection \u00b7 10.20.1.50","s":2,"k":0,"u":[]},{"id":6,"n":"DC-01","i":"Domain controller \u00b7 Win 2022 \u00b7 10.30.1.10","s":3,"k":1,"u":["svc_backup","t0_admin (DA)"]},{"id":7,"n":"FS-01","i":"File server \u00b7 Win 2019 \u00b7 10.30.2.20","s":3,"k":1,"u":[]},{"id":8,"n":"SQL-01","i":"Database \u00b7 Win 2019 \u00b7 10.30.2.30","s":3,"k":1,"u":[]},{"id":9,"n":"BKP-01","i":"Backup server \u00b7 Win 2019 \u00b7 10.30.3.40","s":3,"k":1,"u":[]},{"id":10,"n":"WEB-01","i":"Web server \u00b7 Win 2019 \u00b7 172.16.0.10","s":4,"k":1,"u":[]},{"id":11,"n":"VPN-GW","i":"VPN gateway \u00b7 172.16.0.20","s":4,"k":0,"u":[]}],"ev":[{"id":100,"r":2,"ln":0,"t":0,"p":0,"l":"Phishing","d":"E"},{"id":101,"r":1,"ln":0,"t":40,"p":8,"l":"CS callback","d":"E"},{"id":102,"r":2,"ln":0,"t":3060,"p":2,"l":"Run key","d":"E"},{"id":103,"r":2,"ln":0,"t":6360,"p":6,"l":"AD recon","d":"E"},{"id":104,"r":2,"ln":0,"t":9480,"p":5,"l":"Mimikatz","d":"E"},{"id":105,"r":4,"ln":0,"t":10200,"p":7,"l":"RDP","d":"E"},{"id":106,"r":4,"ln":0,"t":13200,"p":1,"l":"SMB beacon","d":"E"},{"id":107,"r":4,"ln":1,"t":14760,"p":5,"l":"LSASS","d":"E"},{"id":108,"r":6,"ln":0,"t":15960,"p":7,"l":"WinRM","d":"E"},{"id":109,"r":6,"ln":0,"t":18900,"p":5,"l":"NTDS.dit (VSS)","d":"S"},{"id":110,"r":6,"ln":0,"t":21660,"p":10,"l":"Exfil","d":"E"},{"id":111,"r":1,"ln":0,"t":21680,"p":9,"l":"ntds.dit","d":"E"},{"id":112,"r":4,"ln":1,"t":23160,"p":3,"l":"DCSync","d":"E"},{"id":113,"r":6,"ln":1,"t":23170,"p":5,"l":"DRSUAPI","d":"W"},{"id":114,"r":6,"ln":1,"t":25980,"p":3,"l":"Domain Admin","d":"E"},{"id":115,"r":4,"ln":0,"t":27480,"p":7,"l":"DA fan-out","d":"E"},{"id":116,"r":7,"ln":0,"t":28920,"p":7,"l":"PsExec","d":"E"},{"id":117,"r":8,"ln":0,"t":30360,"p":7,"l":"WinRM","d":"E"},{"id":118,"r":9,"ln":0,"t":31800,"p":7,"l":"SMB","d":"E"},{"id":119,"r":10,"ln":0,"t":33360,"p":1,"l":"Webshell","d":"E"},{"id":120,"r":11,"ln":0,"t":33312,"p":15,"l":"Unknown login","d":"S"},{"id":121,"r":9,"ln":0,"t":34740,"p":4,"l":"Del. backups","d":"S"},{"id":122,"r":6,"ln":1,"t":34800,"p":4,"l":"Disable AV","d":"E"},{"id":123,"r":7,"ln":0,"t":36120,"p":9,"l":"Stage 7z","d":"S"},{"id":124,"r":7,"ln":0,"t":37500,"p":10,"l":"Rclone","d":"S"},{"id":125,"r":1,"ln":0,"t":37520,"p":9,"l":"Data copy","d":"E"},{"id":126,"r":4,"ln":0,"t":39000,"p":11,"l":"Deploy","d":"E"},{"id":127,"r":2,"ln":0,"t":40440,"p":11,"l":"Encrypted","d":"W"},{"id":128,"r":7,"ln":0,"t":40440,"p":11,"l":"Encrypted","d":"W"},{"id":129,"r":8,"ln":0,"t":40440,"p":11,"l":"Encrypted","d":"W"},{"id":130,"r":9,"ln":0,"t":40440,"p":11,"l":"Encrypted","d":"W"},{"id":131,"r":6,"ln":0,"t":40440,"p":11,"l":"Encrypted","d":"W"},{"id":132,"r":10,"ln":0,"t":40440,"p":11,"l":"Encrypted","d":"W"},{"id":133,"r":12,"ln":0,"t":41940,"p":12,"l":"EDR alert","d":"W"}],"lk":[{"a":100,"b":101,"l":"HTTPS"},{"a":104,"b":105,"l":"RDP"},{"a":107,"b":108,"l":"WinRM"},{"a":110,"b":111,"l":"C2"},{"a":112,"b":113,"l":"DRSUAPI"},{"a":115,"b":116,"l":"PsExec"},{"a":115,"b":117,"l":"WinRM"},{"a":115,"b":118,"l":"SMB"},{"a":116,"b":119,"l":"RDP"},{"a":124,"b":125,"l":"Rclone"},{"a":126,"b":127,"l":"GPO"},{"a":126,"b":128,"l":""},{"a":126,"b":129,"l":""},{"a":126,"b":130,"l":""},{"a":126,"b":131,"l":""},{"a":126,"b":132,"l":""}],"nt":[{"id":800,"x":"svc_backup holds replication rights: krbtgt hash exposed","w":170,"fs":11,"a":{"k":"e","id":112},"dx":0,"dy":0,"d":"NW"},{"id":801,"x":"Double extortion: data leaves the network 2 days before encryption","w":190,"fs":11,"a":{"k":"e","id":124},"dx":0,"dy":0,"d":"SW"},{"id":802,"x":"Check VPN logs and MFA for this login","w":150,"fs":11,"a":{"k":"e","id":120},"dx":0,"dy":0,"d":"SW"}],"bar":[{"id":500,"r":2,"ln":0,"t1":40,"t2":40440,"c":"#C8102E","l":"CS beacon active"},{"id":501,"r":4,"ln":0,"t1":13200,"t2":39000,"c":"#F26B1D","l":"Attacker dwell time"},{"id":502,"r":6,"ln":1,"t1":25980,"t2":40440,"c":"#7B3FA0","l":"Domain Admin access"},{"id":503,"r":12,"ln":0,"t1":41940,"t2":43200,"c":"#1A9E8F","l":"IR"}],"mk":[{"id":700,"t":0,"l":"T0: initial compromise","c":"#F26B1D"},{"id":701,"t":25980,"l":"Domain Admin","c":"#7B3FA0"},{"id":702,"t":40440,"l":"Ransomware","c":"#C8102E"},{"id":703,"t":41940,"l":"Detection","c":"#1A9E8F"}],"nid":1000};
+// ------------------------------------------------------------ render (SVG)
+function render(S,tok,sl,hit){
+ const sp=span(tok),seg=S.seg,W=1280,X0=20,bw=seg?26:0,sw=190,gx=X0+bw+sw,gw=W-20-gx,cw=gw/sp.n,T0=t0ms(S),lg=S.lg||{};
+ const order=S.rows.map((r,i)=>i);if(seg)order.sort((a,b)=>S.rows[a].s-S.rows[b].s||a-b);
+ const L=r=>Math.max(1,(r.u||[]).length),NL=order.reduce((a,i)=>a+L(S.rows[i]),0),lh=Math.max(10,Math.min(44,Math.floor(620/NL)));
+ let lgi=[],lgH=0;if(lg.on){const used=new Set(S.ev.map(e=>e.p));let x=X0,row=0;PH.forEach((_,i)=>{if(lg.used&&!used.has(i))return;const w=40+ph(S,i).n.length*6.3;if(x+w>W-20&&x>X0){x=X0;row++}lgi.push({i,x,row});x+=w});lgH=(lgi.length?lgi.at(-1).row+1:0)*22+4}
+ const y0=64+lgH,hh=40,ry=y0+hh;let cy=ry;const RG=order.map(i=>{const r=S.rows[i],n=L(r),o={i,r,y:cy,n,h:n*lh};cy+=o.h;return o}),TH=cy-ry,H=ry+TH+48,byId=new Map(RG.map(o=>[o.r.id,o]));
+ G={sp,gx,gw,ry,lh,RG,W,H,cw,TH,nb:{}};
+ let o=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="Segoe UI,Arial,sans-serif"><defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0L8,4L0,8z" fill="#C8102E"/></marker></defs><rect width="${W}" height="${H}" fill="#fff"/>`;
+ o+=`<text x="20" y="30" font-size="24" font-weight="700" fill="#0A2540">${esc(S.title)}</text><text x="20" y="52" font-size="12" fill="#6B7A8C">T0 = ${T0!=null?fmtDT(T0)+" UTC":"____________"}  ·  ${esc(sp.name)}  ·  grid: ${sp.sn} ${sp.u} per column</text>`;
+ lgi.forEach(g=>{const p=ph(S,g.i),x=g.x,y=64+g.row*22+10;o+=`<circle cx="${x+10}" cy="${y}" r="10" fill="${p.col}"/><text x="${x+10}" y="${y}" font-size="${p.c.length>2?7:9}" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="central">${esc(p.c)}</text><text x="${x+26}" y="${y}" font-size="11" fill="#1B1B1B" dominant-baseline="central">${esc(p.n)}</text>`});
+ o+=`<rect x="20" y="${y0}" width="${W-40}" height="${hh}" fill="#0A2540"/><text x="${X0+bw+10}" y="${y0+25}" font-size="13" font-weight="700" fill="#fff">System</text>`;
+ const labs=Array.from({length:sp.n},(_,i)=>colLab(sp,i,cw,T0)),k=Math.max(1,Math.ceil((Math.max(...labs.map(l=>l[1].length))*6.4+10)/cw));let prev=null;
+ labs.forEach((l,i)=>{if(i%k)return;const x=gx+(i+.5)*cw;if(l[0]&&l[0]!==prev){o+=`<text x="${x}" y="${y0+15}" font-size="9.5" fill="#BFD0E3" text-anchor="middle">${esc(l[0])}</text>`;prev=l[0]}
+  o+=`<text x="${x}" y="${y0+(l[0]?31:25)}" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">${esc(l[1])}</text>`});
+ RG.forEach((g,j)=>{const r=g.r,y=g.y,c0=y+lh/2,nx=X0+bw+10;
+  o+=`<rect x="20" y="${y}" width="${W-40}" height="${g.h}" fill="${r.k==1?"#FEEEF0":r.k==2?"#F9DDE2":j%2?"#fff":"#EEF2F6"}" stroke="#D0D7DF" stroke-width=".5"/>`;
+  const nm=esc(cut(r.n,r.k||g.n>1?17:26)),col=r.k==2?"#C8102E":"#0A2540";
+  o+=lh>=30&&g.n==1?`<text x="${nx}" y="${c0-2}" font-size="12" font-weight="700" fill="${col}">${nm}</text><text x="${nx}" y="${c0+12}" font-size="10" fill="#6B7A8C">${esc(cut(r.i,34))}</text>`:`<text x="${nx}" y="${c0+4}" font-size="${lh>=20?11:9}" font-weight="700" fill="${col}">${nm}${g.n==1?`<tspan font-weight="400" fill="#6B7A8C" dx="6">${esc(cut(r.i,r.k?18:32))}</tspan>`:""}</text>`;
+  if(lh>=16){if(r.k==1)o+=`<circle cx="${gx-14}" cy="${c0}" r="7" fill="#C8102E"/><text x="${gx-14}" y="${c0}" font-size="10" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="central">!</text>`;
+   if(r.k==2)o+=`<rect x="${gx-38}" y="${c0-7}" width="32" height="14" rx="3" fill="#C8102E"/><text x="${gx-22}" y="${c0}" font-size="9" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="central">ATK</text>`}
+  (r.u||[]).forEach((u,q)=>{o+=`<text x="${gx-(r.k&&lh>=16?44:6)}" y="${y+(q+.5)*lh}" font-size="${lh>=16?10:8}" fill="#6B7A8C" text-anchor="end" dominant-baseline="central">${esc(cut(u,16))}</text>`;if(q)o+=`<line x1="${X0+bw}" y1="${y+q*lh}" x2="${W-20}" y2="${y+q*lh}" stroke="#B8C2CE" stroke-width=".7" stroke-dasharray="3 3"/>`})});
+ for(let i=1;i<=sp.n;i++)o+=`<line x1="${gx+i*cw}" y1="${ry}" x2="${gx+i*cw}" y2="${ry+TH}" stroke="#C5CED8" stroke-width=".5"/>`;
+ o+=`<line x1="${gx}" y1="${ry}" x2="${gx}" y2="${ry+TH}" stroke="#F26B1D" stroke-width="2.5"/>`;
+ const X=t=>gx+t/sp.tot*gw;
+ S.mk.forEach((m,q)=>{if(m.t>sp.tot)return;const x=X(m.t),s=sl&&sl.k=="m"&&sl.id==m.id;o+=`<line x1="${x}" y1="${ry}" x2="${x}" y2="${ry+TH}" stroke="${m.c}" stroke-width="${s?3:2}" stroke-dasharray="6 4"/>${hit?`<line data-m="${m.id}" data-hit="1" x1="${x}" y1="${ry}" x2="${x}" y2="${ry+TH}" stroke="#000" stroke-opacity="0" stroke-width="12" style="cursor:ew-resize"/>`:""}<text data-m="${m.id}" x="${x}" y="${ry+TH+16+(q%2)*15}" font-size="11" font-weight="700" fill="${m.c}" text-anchor="middle" style="cursor:ew-resize">${esc(cut(m.l,30))}</text>`});
+ if(seg)for(let a=0;a<RG.length;){let b=a;const s=RG[a].r.s;while(b+1<RG.length&&RG[b+1].r.s==s)b++;const y=RG[a].y,h=RG[b].y+RG[b].h-y,gd=S.segs[s]||{n:"",c:"#6B7A8C"};
+  o+=`<rect x="20" y="${y}" width="26" height="${h}" fill="${gd.c}"/><text transform="rotate(-90 33 ${y+h/2})" x="33" y="${y+h/2}" font-size="11" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="central">${esc(cut(gd.n,Math.max(4,Math.floor(h/6.5))))}</text>`;if(a>0)o+=`<line x1="20" y1="${y}" x2="${W-20}" y2="${y}" stroke="#0A2540" stroke-width="1.5"/>`;a=b+1}
+ S.bar.forEach(b=>{const g=byId.get(b.r);if(!g||b.t1>sp.tot)return;const ln=Math.min(b.ln||0,g.n-1),x1=X(b.t1),x2=Math.max(x1+4,X(Math.min(b.t2,sp.tot))),low=lh>=34,bh=low?10:Math.max(5,lh*.4),y=low?g.y+(ln+1)*lh-bh-2:g.y+ln*lh+(lh-bh)/2,s=sl&&sl.k=="b"&&sl.id==b.id;
+  o+=`<rect data-b="${b.id}" x="${x1}" y="${y}" width="${x2-x1}" height="${bh}" rx="3" fill="${b.c}"${s?' stroke="#F26B1D" stroke-width="2.5" stroke-dasharray="4 2"':""} style="cursor:grab"/>`;
+  if(b.l&&low&&x2-x1>40)o+=`<text data-b="${b.id}" x="${x1+5}" y="${y+bh/2}" font-size="8.5" font-weight="700" fill="#fff" dominant-baseline="central" style="cursor:grab">${esc(cut(b.l,Math.floor((x2-x1-8)/5.2)))}</text>`});
+ const R=Math.min(lh*.4,15),pos=e=>{const g=byId.get(e.r);return g?[X(e.t),g.y+(Math.min(e.ln||0,g.n-1)+.5)*lh]:null},em=new Map(S.ev.filter(e=>e.t<=sp.tot&&byId.has(e.r)).map(e=>[e.id,e]));
+ S.lk.forEach(l=>{const a=em.get(l.a),b=em.get(l.b);if(!a||!b)return;const[x1,y1]=pos(a),[x2,y2]=pos(b),g=R+3,sy=Math.sign(y2-y1)||1,sx=Math.sign(x2-x1)||1;let sg,lx,ly;
+  if(S.ls=="straight"||Math.abs(y2-y1)<2||Math.abs(x2-x1)<g+6){const d=Math.hypot(x2-x1,y2-y1)||1,u=g/d;sg=[[x1+(x2-x1)*u,y1+(y2-y1)*u,x2-(x2-x1)*u,y2-(y2-y1)*u]];lx=(x1+x2)/2;ly=(y1+y2)/2}
+  else{sg=[[x1,y1+sy*g,x1,y2],[x1,y2,x2-sx*g,y2]];lx=(x1+x2-sx*g)/2;ly=y2}
+  sg.forEach((s,i)=>o+=`<line x1="${s[0]}" y1="${s[1]}" x2="${s[2]}" y2="${s[3]}" stroke="#C8102E" stroke-width="2.2"${i==sg.length-1?' marker-end="url(#ar)"':""}/>`);
+  if(l.l){const w=l.l.length*5.9+10;o+=`<rect x="${lx-w/2}" y="${ly-8}" width="${w}" height="16" rx="3" fill="#fff"/><text x="${lx}" y="${ly}" font-size="10.5" font-weight="700" fill="#C8102E" text-anchor="middle" dominant-baseline="central">${esc(l.l)}</text>`}});
+ em.forEach(e=>{const[x,y]=pos(e),p=ph(S,e.p),s=sl&&sl.k=="e"&&sl.id==e.id,[ux,uy]=DIR[e.d||"E"],dg=ux&&uy;
+  o+=`<g data-e="${e.id}" style="cursor:grab">${s?`<circle cx="${x}" cy="${y}" r="${R+4}" fill="none" stroke="#F26B1D" stroke-width="2" stroke-dasharray="3 3"/>`:""}<circle cx="${x}" cy="${y}" r="${R}" fill="${p.col}"/><text x="${x}" y="${y}" font-size="${(R*(p.c.length>2?.62:.95)).toFixed(1)}" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="central">${esc(p.c)}</text>${e.l?`<text x="${x+ux*(dg?R*.75+3:R+4)}" y="${y+uy*(dg?R*.75+7:R+8)}" font-size="${lh>=22?11:9}" fill="#1B1B1B" text-anchor="${ux>0?"start":ux<0?"end":"middle"}" dominant-baseline="central">${esc(cut(e.l,42))}</text>`:""}</g>`});
+ const wrap=(s,m)=>{const out=[];String(s).split("\n").forEach(par=>{let c="";par.split(" ").forEach(w=>{if(c&&(c+" "+w).length>m){out.push(c);c=w}else c=c?c+" "+w:w});out.push(c)});return out};
+ S.nt.forEach(n=>{let x,y,ax,ay;if(n.a){if(n.a.k=="e"){const e=em.get(n.a.id);if(!e)return;[ax,ay]=pos(e)}else{const g=byId.get(n.a.id);if(!g)return;ax=gx;ay=g.y+g.h/2}x=ax+n.dx;y=ay+n.dy}else{if(n.t>sp.tot)return;const g0=RG[0];x=X(n.t);y=ry+n.fy*lh}
+  const ls=wrap(n.x,Math.max(4,Math.floor((n.w-12)/(n.fs*.55)))),h=ls.length*(n.fs+3)+10;
+  if(n.a&&n.d){const[ux,uy]=DIR[n.d],g=(n.a.k=="e"?R:6)+6,q=ux&&uy?.72:1;x=ax+n.dx+(ux>0?g*q:ux<0?-g*q-n.w:-n.w/2);y=ay+n.dy+(uy>0?g*q:uy<0?-g*q-h:-h/2)}G.nb[n.id]={x,y};
+  if(n.a){const px=Math.min(Math.max(ax,x),x+n.w),py=Math.min(Math.max(ay,y),y+h),d=Math.hypot(px-ax,py-ay)||1,s=n.a.k=="e"?R/d:0;o+=`<line x1="${px}" y1="${py}" x2="${ax+(px-ax)*s}" y2="${ay+(py-ay)*s}" stroke="#F26B1D" stroke-width="1.3" stroke-dasharray="4 3"/>`}
+  const s=sl&&sl.k=="n"&&sl.id==n.id;o+=`<g data-n="${n.id}" style="cursor:grab"><rect x="${x}" y="${y}" width="${n.w}" height="${h}" rx="4" fill="#FFF3EA" stroke="#F26B1D" stroke-width="${s?2.5:1}"${s?' stroke-dasharray="4 2"':""}/>${ls.map((l,i)=>`<text x="${x+6}" y="${y+5+n.fs+i*(n.fs+3)-1}" font-size="${n.fs}" fill="#1B1B1B">${esc(l)}</text>`).join("")}</g>`});
+ return o+"</svg>"}
+// ------------------------------------------------------------ app
+const IT={e:()=>S.ev,n:()=>S.nt,b:()=>S.bar,m:()=>S.mk},cur=()=>SEL&&IT[SEL.k]().find(x=>x.id==SEL.id);
+function draw(){const st=$("#st");try{$("#view").innerHTML=render(S,S.span,SEL,true);const tot=G.sp.tot;st.textContent=[...S.ev,...S.mk].some(e=>e.t>tot)||S.bar.some(b=>b.t1>tot)?"Some items lie beyond this time span and are hidden.":""}catch(e){st.textContent=String(e)}keep()}
+function pick(k,id){SEL=k?{k,id}:null;drawEd();draw()}
+function cleanup(){const rid=new Set(S.rows.map(r=>r.id));S.ev=S.ev.filter(e=>rid.has(e.r));S.bar=S.bar.filter(b=>rid.has(b.r));const ids=new Set(S.ev.map(e=>e.id));S.lk=S.lk.filter(l=>ids.has(l.a)&&ids.has(l.b));S.nt=S.nt.filter(n=>!n.a||(n.a.k=="e"?ids.has(n.a.id):rid.has(n.a.id)));if(SEL&&!cur())SEL=null}
+function delSel(){if(!SEL)return;const a=IT[SEL.k]();a.splice(a.findIndex(x=>x.id==SEL.id),1);cleanup();SEL=null;drawEd();draw()}
+const cp=c=>`<div class="cp">${[["NW","↖"],["N","↑"],["NE","↗"],["W","←"],["","·"],["E","→"],["SW","↙"],["S","↓"],["SE","↘"]].map(([d,s])=>d?`<button data-d="${d}" class="${d==c?"on":""}">${s}</button>`:"<span></span>").join("")}</div>`;
+const sel=(opts,c,at)=>`<select ${at}>${opts.map(([v,t])=>`<option value="${v}" ${v==c?"selected":""}>${esc(t)}</option>`).join("")}</select>`;
+const te=(f,t)=>{t=Math.max(0,Math.round(t||0));const T0=t0ms(S);return`<div class="te" data-f="${f}">${T0!=null?`<input type="datetime-local" class="dt" value="${new Date(T0+t*60000).toISOString().slice(0,16)}">`:""}<span class="of"><input type="number" class="D" min="0" value="${Math.floor(t/1440)}"> d <input type="number" class="H" min="0" max="23" value="${Math.floor(t%1440/60)}"> h <input type="number" class="M" min="0" max="59" value="${t%60}"> min</span></div>`};
+const evName=id=>{const e=S.ev.find(x=>x.id==id),r=e&&S.rows.find(x=>x.id==e.r);return e?(e.l||"event")+" – "+(r?r.n:"?"):"?"};
+function drawEd(){const o=cur(),b=$("#ed");if(!o){b.innerHTML='<span class="s">Pick a phase icon above and click in the grid to place an event, or click any item to edit it. Use the toolbar for text fields, time bars and markers.</span>';return}
+ const rs=S.rows.map(r=>[r.id,r.n]),lanes=id=>(S.rows.find(r=>r.id==id)||{u:[]}).u||[],lane=o=>{const u=lanes(o.r);return u.length>1?`<div class="f"><label>User lane</label>${sel(u.map((x,i)=>[i,x]),o.ln||0,'data-k="ln" data-n="1"')}</div>`:""};
+ const sys=`<div class="f"><label>System</label>${sel(rs,o.r,'data-k="r" data-n="1" data-rd="1"')}</div>${lane(o)}`;
+ if(SEL.k=="e"){b.innerHTML=`<div class="f"><label>Time</label>${te("t",o.t)}</div>${sys}<div class="f"><label>Phase</label>${sel(PH.map((_,i)=>[i,ph(S,i).n]),o.p,'data-k="p" data-n="1"')}</div><div class="f"><label>Label</label><input data-k="l" value="${esc(o.l)}"></div><div class="f"><label>Label position</label>${cp(o.d||"E")}</div>
+  <div class="bt"><button id="lkb" class="${linkFrom==o.id?"on":""}">${linkFrom==o.id?"Done adding arrows":"Add arrows to other events…"}</button><button id="del">Delete</button></div>
+  ${S.lk.map((l,i)=>l.a==o.id||l.b==o.id?`<div class="lkr"><span>${l.a==o.id?"→":"←"} ${esc(cut(evName(l.a==o.id?l.b:l.a),20))}</span><input data-li="${i}" placeholder="arrow label, e.g. RDP" value="${esc(l.l||"")}"><button data-lr="${i}">✕</button></div>`:"").join("")}`}
+ else if(SEL.k=="b")b.innerHTML=`${sys}<div class="f"><label>Start</label>${te("t1",o.t1)}</div><div class="f"><label>End</label>${te("t2",o.t2)}</div><div class="f"><label>Color</label><input type="color" data-k="c" value="${o.c}"></div><div class="f"><label>Label</label><input data-k="l" value="${esc(o.l)}"></div><div class="bt"><button id="del">Delete time bar</button></div>`;
+ else if(SEL.k=="m")b.innerHTML=`<div class="f"><label>Time</label>${te("t",o.t)}</div><div class="f"><label>Color</label><input type="color" data-k="c" value="${o.c}"></div><div class="f"><label>Label</label><input data-k="l" value="${esc(o.l)}"></div><div class="bt"><button id="del">Delete marker</button></div>`;
+ else{const ak=o.a?o.a.k+":"+o.a.id:"f";b.innerHTML=`<div class="f"><label>Text</label><textarea data-k="x" rows="3">${esc(o.x)}</textarea></div><div class="f"><label>Attached to</label><select id="na"><option value="f">Free (not attached)</option><optgroup label="Events">${S.ev.map(e=>`<option value="e:${e.id}" ${ak=="e:"+e.id?"selected":""}>${esc(cut(evName(e.id),28))}</option>`).join("")}</optgroup><optgroup label="Systems">${S.rows.map(r=>`<option value="r:${r.id}" ${ak=="r:"+r.id?"selected":""}>${esc(r.n)}</option>`).join("")}</optgroup></select></div>${o.a?`<div class="f"><label>Position</label>${cp(o.d||"")}</div>`:""}<div class="f"><label>Width / size</label><span style="display:flex;gap:4px"><input data-k="w" data-n="1" type="number" min="60" max="600" value="${o.w}"><input data-k="fs" data-n="1" type="number" min="8" max="20" value="${o.fs}"></span></div><div class="bt"><button id="del">Delete text field</button></div>`}}
+$("#ed").addEventListener("input",e=>{const t=e.target;if(t.closest(".te")||t.id=="na")return;const o=cur();if(t.dataset.li!=null){S.lk[+t.dataset.li].l=t.value;draw();return}if(!o||!t.dataset.k||t.tagName=="SELECT")return;o[t.dataset.k]=t.dataset.n?+t.value:t.value;draw()});
+$("#ed").addEventListener("change",e=>{const t=e.target,o=cur();if(!o)return;const f=t.closest(".te");
+ if(f){let m;if(t.classList.contains("dt")){m=(Date.parse(t.value+":00Z")-t0ms(S))/60000}else{const q=c=>+f.querySelector("."+c).value||0;m=q("D")*1440+q("H")*60+q("M")}if(isFinite(m)){o[f.dataset.f]=Math.max(0,Math.round(m));if(SEL.k=="b"&&o.t2<o.t1)[o.t1,o.t2]=[o.t2,o.t1]}drawEd();draw();return}
+ if(t.id=="na"){const v=t.value;if(v=="f"){const g=G.nb[o.id];if(o.a&&g){o.t=Math.max(0,Math.min(G.sp.tot,(g.x-G.gx)/G.gw*G.sp.tot));o.fy=(g.y-G.ry)/G.lh}o.a=null}else{const[k,id]=v.split(":");if(!o.a){o.dx=0;o.dy=0;o.d=k=="r"?"E":"SE"}o.a={k,id:+id}}drawEd();draw();return}
+ if(t.tagName=="SELECT"&&t.dataset.k){o[t.dataset.k]=t.dataset.n?+t.value:t.value;if(t.dataset.k=="r")o.ln=0;if(t.dataset.rd)drawEd();draw()}});
+$("#ed").addEventListener("click",e=>{const t=e.target,o=cur();if(t.id=="del"){delSel();return}if(!o)return;
+ if(t.id=="lkb"){linkFrom=linkFrom==o.id?null:o.id;$("#st").textContent=linkFrom!=null?"Click each target event to add or remove an arrow (tree). Click 'Done' or press Esc to finish.":"";drawEd();draw();return}
+ if(t.dataset.lr!=null){S.lk.splice(+t.dataset.lr,1);drawEd();draw();return}
+ const d=t.closest("[data-d]");if(d){o.d=d.dataset.d;if(SEL.k=="n"){o.dx=0;o.dy=0}drawEd();draw()}});
+function setTool(t){tool=t;document.querySelectorAll(".ph").forEach(x=>x.classList.toggle("on",!!t&&t.k=="ev"&&x.dataset.p==t.p));$("#view").style.cursor=t?"crosshair":"";$("#st").textContent=t&&t.k=="bar"?"Drag across a system row to draw a time bar.":t&&t.k=="mk"?"Click in the grid to place a vertical marker.":""}
+$("#addn").onclick=()=>{const e=SEL&&SEL.k=="e"?cur():null,n={id:S.nid++,x:"Note",w:150,fs:11,a:null,dx:0,dy:0,d:"SE",t:G.sp.tot*.4,fy:.1};if(e)n.a={k:"e",id:e.id};S.nt.push(n);pick("n",n.id)};
+$("#addb").onclick=()=>setTool(tool&&tool.k=="bar"?null:{k:"bar"});$("#addm").onclick=()=>setTool(tool&&tool.k=="mk"?null:{k:"mk"});
+// sidebar
+function drawRows(){$("#rows").innerHTML=S.rows.map((r,i)=>`<div class="rw"><div class="l1"><input data-k="n" data-i="${i}" value="${esc(r.n)}"><input data-k="i" data-i="${i}" value="${esc(r.i)}"></div><div class="l2"><select data-k="s" data-i="${i}" ${S.seg?"":"hidden"}>${S.segs.map((g,j)=>`<option value="${j}" ${r.s==j?"selected":""}>${esc(cut(g.n,12))}</option>`).join("")}</select><select data-k="k" data-i="${i}"><option value="0">Normal</option><option value="1" ${r.k==1?"selected":""}>Compromised</option><option value="2" ${r.k==2?"selected":""}>Attacker</option></select><input data-k="u" data-i="${i}" placeholder="users: a, b" value="${esc((r.u||[]).join(", "))}"><button data-a="up" data-i="${i}">↑</button><button data-a="rm" data-i="${i}">✕</button></div></div>`).join("");$("#ns").value=S.rows.length}
+function drawSegs(){$("#segs").innerHTML=S.segs.map((g,i)=>`<div class="sg"><input type="color" data-c="${i}" value="${g.c}"><input data-i="${i}" value="${esc(g.n)}"><button data-a="rm" data-i="${i}">✕</button></div>`).join("");$("#segd").hidden=!S.seg}
+function drawPrn(){$("#prn").innerHTML=PH.map((_,i)=>{const p=ph(S,i);return`<div class="pr"><input data-pc="${i}" maxlength="3" value="${esc(p.c)}"><input data-pn="${i}" value="${esc(p.n)}"></div>`}).join("")}
+function drawPal(){$("#pal").innerHTML=PH.map((_,i)=>{const p=ph(S,i);return`<span class="ph" data-p="${i}"><i style="background:${p.col}">${esc(p.c)}</i>${esc(p.n)}</span>`}).join("")}
+function init(){$("#title").value=S.title;$("#t0").value=S.t0;$("#seg").checked=S.seg;$("#snap").checked=!!S.snap;$("#lg").checked=S.lg.on;$("#lgu").checked=S.lg.used;$("#ls").value=S.ls||"elbow";
+ $("#span").innerHTML=SP.map(x=>`<option value="${x[0]}">${x[2]}</option>`).join("")+'<option value="_c">Custom…</option>';const isP=!!PRE[S.span];$("#span").value=isP?S.span:"_c";$("#cu").hidden=isP;$("#cust").value=isP?"":S.span;
+ drawPal();drawPrn();drawRows();drawSegs();drawEd();draw();setTool(null)}
+$("#title").oninput=e=>{S.title=e.target.value;draw()};$("#t0").onchange=e=>{S.t0=e.target.value;drawEd();draw()};$("#t0x").onclick=()=>{S.t0="";$("#t0").value="";drawEd();draw()};
+$("#span").onchange=e=>{const c=e.target.value=="_c";$("#cu").hidden=!c;if(!c){S.span=e.target.value;draw()}else $("#cust").focus()};
+$("#cust").oninput=e=>{try{span(e.target.value);S.span=e.target.value}catch(x){$("#st").textContent=String(x);return}draw()};
+$("#snap").onchange=e=>{S.snap=e.target.checked};$("#lg").onchange=e=>{S.lg.on=e.target.checked;draw()};$("#lgu").onchange=e=>{S.lg.used=e.target.checked;draw()};$("#ls").onchange=e=>{S.ls=e.target.value;draw()};
+$("#seg").onchange=e=>{S.seg=e.target.checked;drawRows();drawSegs();draw()};
+$("#prn").oninput=e=>{const t=e.target,i=t.dataset.pc??t.dataset.pn;if(i==null)return;const o=S.pn[i]=S.pn[i]||{};if(t.dataset.pc!=null)o.c=t.value;else o.n=t.value;drawPal();drawEd();draw()};
+$("#prr").onclick=()=>{S.pn={};drawPrn();drawPal();drawEd();draw()};
+$("#pal").onclick=e=>{const c=e.target.closest("[data-p]");if(!c)return;setTool(tool&&tool.k=="ev"&&tool.p==c.dataset.p?null:{k:"ev",p:+c.dataset.p})};
+const newRow=()=>({id:S.nid++,n:"System "+(S.rows.length+1),i:"IP · Role · OS",s:S.rows.at(-1)?.s||0,k:0,u:[]});
+$("#ns").onchange=e=>{const n=Math.max(1,Math.min(60,+e.target.value||1));while(S.rows.length<n)S.rows.push(newRow());while(S.rows.length>n)S.rows.pop();cleanup();drawRows();drawEd();draw()};
+$("#addr").onclick=()=>{S.rows.push(newRow());drawRows();draw()};
+$("#rows").oninput=$("#rows").onchange=e=>{const t=e.target,i=+t.dataset.i,k=t.dataset.k;if(!k)return;const r=S.rows[i];r[k]=k=="u"?t.value.split(",").map(x=>x.trim()).filter(Boolean):k=="s"||k=="k"?+t.value:t.value;draw();if(k=="n"||k=="u")drawEd()};
+$("#rows").onclick=e=>{const a=e.target.dataset.a,i=+e.target.dataset.i;if(!a)return;if(a=="up"&&i>0)[S.rows[i-1],S.rows[i]]=[S.rows[i],S.rows[i-1]];if(a=="rm"&&S.rows.length>1){S.rows.splice(i,1);cleanup()}drawRows();drawEd();draw()};
+$("#adds").onclick=()=>{S.segs.push({n:"Segment "+(S.segs.length+1),c:SEGC[S.segs.length%7]});drawSegs();drawRows();draw()};
+$("#segs").oninput=e=>{const t=e.target;if(t.dataset.c!=null)S.segs[+t.dataset.c].c=t.value;else if(t.dataset.i!=null)S.segs[+t.dataset.i].n=t.value;draw()};
+$("#segs").onchange=()=>drawRows();
+$("#segs").onclick=e=>{if(e.target.dataset.a!="rm"||S.segs.length<2)return;const i=+e.target.dataset.i;S.segs.splice(i,1);S.rows.forEach(r=>{if(r.s==i)r.s=0;else if(r.s>i)r.s--});drawSegs();drawRows();draw()};
+// canvas interaction
+function pt(ev){const r=$("#view svg").getBoundingClientRect(),k=G.W/r.width;return[(ev.clientX-r.left)*k,(ev.clientY-r.top)*k]}
+const gran=()=>{const t=G.sp.tot;return t<=180?1:t<=1440?5:t<=10080?15:t<=64800?60:1440};
+function tAt(x){const{sp,gx,gw,cw}=G;let t=S.snap?(Math.floor((x-gx)/cw)+.5)*sp.st:(x-gx)/gw*sp.tot;if(!S.snap){const g=gran();t=Math.round(t/g)*g}return Math.min(sp.tot,Math.max(0,Math.round(t)))}
+function rowAt(y){const g=G.RG.find(o=>y>=o.y&&y<o.y+o.h)||(y<G.ry?G.RG[0]:G.RG.at(-1));return{r:g.r.id,ln:Math.min(g.n-1,Math.max(0,Math.floor((y-g.y)/G.lh)))}}
+const inGrid=(x,y)=>x>=G.gx&&x<=G.gx+G.gw&&y>=G.ry&&y<G.ry+G.TH,find=(a,id)=>a.find(q=>q.id==id);
+$("#view").onpointerdown=ev=>{if(!$("#view svg"))return;const[x,y]=pt(ev),tg=ev.target,n=tg.closest("[data-n]"),e=tg.closest("[data-e]"),b=tg.closest("[data-b]"),m=tg.closest("[data-m]");
+ if(n){const o=find(S.nt,+n.dataset.n);drag={k:"n",id:o.id,x,y,dx:o.dx,dy:o.dy,t:o.t,fy:o.fy};pick("n",o.id);return}
+ if(e){const id=+e.dataset.e;if(linkFrom!=null&&linkFrom!=id){const i=S.lk.findIndex(l=>l.a==linkFrom&&l.b==id);if(i>=0)S.lk.splice(i,1);else S.lk.push({a:linkFrom,b:id,l:""});draw();drawEd();return}const o=find(S.ev,id);drag={k:"e",id,ox:x-(G.gx+o.t/G.sp.tot*G.gw)};pick("e",id);return}
+ if(b){const o=find(S.bar,+b.dataset.b);drag={k:"b",id:o.id,x0:x,t1:o.t1,t2:o.t2};pick("b",o.id);return}
+ if(m){const o=find(S.mk,+m.dataset.m);drag={k:"m",id:o.id,ox:x-(G.gx+o.t/G.sp.tot*G.gw)};pick("m",o.id);return}
+ if(tool&&inGrid(x,y)){const rw=rowAt(y),t=tAt(x);
+  if(tool.k=="ev"){const o={id:S.nid++,r:rw.r,ln:rw.ln,t,p:tool.p,l:ph(S,tool.p).n,d:"E"};S.ev.push(o);pick("e",o.id)}
+  else if(tool.k=="bar"){const o={id:S.nid++,r:rw.r,ln:rw.ln,t1:t,t2:t,c:"#C8102E",l:""};S.bar.push(o);drag={k:"bn",id:o.id,t0:t};pick("b",o.id);setTool(null)}
+  else{const o={id:S.nid++,t,l:"Marker",c:"#F26B1D"};S.mk.push(o);setTool(null);pick("m",o.id)}return}
+ linkFrom=null;pick(null)};
+window.onpointermove=ev=>{if(!drag)return;const[x,y]=pt(ev);
+ if(drag.k=="n"){const n=find(S.nt,drag.id);if(!n)return;if(n.a){n.dx=drag.dx+x-drag.x;n.dy=drag.dy+y-drag.y}else{n.t=Math.max(0,Math.min(G.sp.tot,drag.t+(x-drag.x)/G.gw*G.sp.tot));n.fy=drag.fy+(y-drag.y)/G.lh}draw();return}
+ if(drag.k=="e"){const o=find(S.ev,drag.id),rw=rowAt(y),t=tAt(x-drag.ox);if(o&&(t!=o.t||rw.r!=o.r||rw.ln!=o.ln)){o.t=t;o.r=rw.r;o.ln=rw.ln;draw()}return}
+ if(drag.k=="b"){const o=find(S.bar,drag.id),len=drag.t2-drag.t1,g=gran();let a=drag.t1+(x-drag.x0)/G.gw*G.sp.tot;a=Math.max(0,Math.min(G.sp.tot-len,Math.round(a/g)*g));const rw=rowAt(y);o.t1=a;o.t2=a+len;o.r=rw.r;o.ln=rw.ln;draw();return}
+ if(drag.k=="m"){const o=find(S.mk,drag.id);o.t=tAt(x-drag.ox);draw();return}
+ if(drag.k=="bn"){const o=find(S.bar,drag.id),t=tAt(x);o.t1=Math.min(drag.t0,t);o.t2=Math.max(drag.t0,t);draw()}};
+window.onpointerup=()=>{if(!drag)return;const d=drag;drag=null;if(d.k=="bn"){const o=find(S.bar,d.id);if(o.t2-o.t1<1)o.t2=Math.min(G.sp.tot,o.t1+G.sp.st)}drawEd();draw()};
+document.onkeydown=e=>{if(e.key=="Escape"){linkFrom=null;setTool(null);drawEd()}if(e.key=="Delete"&&SEL&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))delSel()};
+// save / load
+const dl=(b,n)=>{const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2e3)};
+const slug=()=>(S.title||"timeline").replace(/[^\w-]+/g,"_").slice(0,50);
+$("#save").onclick=()=>dl(new Blob([JSON.stringify(S,null,1)],{type:"application/json"}),slug()+".timeline.json");
+$("#open").onclick=()=>$("#file").click();
+const load=x=>{S=norm(x);SEL=null;linkFrom=null;init()};
+$("#file").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;try{const x=JSON.parse(await f.text());if(!Array.isArray(x.rows))throw"Not a timeline file";load(x)}catch(x){$("#st").textContent="Cannot open file: "+x}};
+$("#new").onclick=()=>{if(confirm("Discard the current timeline and start a new one?"))load(def())};
+$("#ex").onclick=()=>{if(EXAMPLE&&confirm("Load the example (lateral movement across network segments)? The current timeline will be replaced."))load(JSON.parse(JSON.stringify(EXAMPLE)))};
+function raster(svg,sc,type){return new Promise((ok,no)=>{const w=+/width="(\d+)"/.exec(svg)[1],h=+/height="(\d+)"/.exec(svg)[1],im=new Image();im.onload=()=>{const c=document.createElement("canvas");c.width=w*sc;c.height=h*sc;const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);ok(c)};im.onerror=()=>no("Rendering failed");im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg)})}
+const toBlob=(c,t,q)=>new Promise(r=>c.toBlob(r,t,q));
+$("#png").onclick=async()=>{try{dl(await toBlob(await raster(render(S,S.span,null),2,"png"),"image/png"),slug()+"_"+S.span+".png")}catch(e){$("#st").textContent=String(e)}draw()};
+function pdf(pages){const enc=new TextEncoder(),parts=[],off=[];let len=0;const add=x=>{const b=typeof x=="string"?enc.encode(x):x;parts.push(b);len+=b.length},N=2+pages.length*3;
+ add("%PDF-1.4\n");off[1]=len;add("1 0 obj\n<</Type/Catalog/Pages 2 0 R>>\nendobj\n");off[2]=len;add(`2 0 obj\n<</Type/Pages/Count ${pages.length}/Kids[${pages.map((_,i)=>`${3+i*3} 0 R`).join(" ")}]>>\nendobj\n`);
+ pages.forEach((p,i)=>{const n=3+i*3,PW=842,PH_=+(PW*p.h/p.w).toFixed(2),cs=`q ${PW} 0 0 ${PH_} 0 0 cm /Im0 Do Q`;
+  off[n]=len;add(`${n} 0 obj\n<</Type/Page/Parent 2 0 R/MediaBox[0 0 ${PW} ${PH_}]/Resources<</XObject<</Im0 ${n+2} 0 R>>>>/Contents ${n+1} 0 R>>\nendobj\n`);
+  off[n+1]=len;add(`${n+1} 0 obj\n<</Length ${cs.length}>>\nstream\n${cs}\nendstream\nendobj\n`);
+  off[n+2]=len;add(`${n+2} 0 obj\n<</Type/XObject/Subtype/Image/Width ${p.w}/Height ${p.h}/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length ${p.b.length}>>\nstream\n`);add(p.b);add("\nendstream\nendobj\n")});
+ const xr=len;add(`xref\n0 ${N+1}\n0000000000 65535 f \n`+off.slice(1).map(o=>String(o).padStart(10,"0")+" 00000 n \n").join("")+`trailer\n<</Size ${N+1}/Root 1 0 R>>\nstartxref\n${xr}\n%%EOF`);return new Blob(parts,{type:"application/pdf"})}
+async function page(tok){const c=await raster(render(S,tok,null),2,"jpeg"),d=atob(c.toDataURL("image/jpeg",.93).split(",")[1]),b=new Uint8Array(d.length);for(let i=0;i<d.length;i++)b[i]=d.charCodeAt(i);return{b,w:c.width,h:c.height}}
+$("#pdf").onclick=async()=>{try{dl(pdf([await page(S.span)]),slug()+"_"+S.span+".pdf")}catch(e){$("#st").textContent=String(e)}draw()};
+$("#pdfa").onclick=async()=>{try{const ps=[];for(const k of Object.keys(PRE))ps.push(await page(k));dl(pdf(ps),slug()+"_all_spans.pdf")}catch(e){$("#st").textContent=String(e)}draw()};
+
+$("#prt").onclick=()=>window.print();
+// ---- PowerPoint export (built in, no libraries): SVG -> native editable PPTX shapes
+const crcT=(()=>{const t=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+const crc=b=>{let c=~0;for(let i=0;i<b.length;i++)c=crcT[(c^b[i])&255]^(c>>>8);return~c>>>0};
+function zip(files){const enc=new TextEncoder(),out=[],cd=[];let off=0;
+ files.forEach(f=>{const n=enc.encode(f.n),d=enc.encode(f.d),c=crc(d),h=new DataView(new ArrayBuffer(30));
+  [[0,0x04034b50,4],[4,20,2],[6,0,2],[8,0,2],[10,0,2],[12,0x21,2],[14,c,4],[18,d.length,4],[22,d.length,4],[26,n.length,2],[28,0,2]].forEach(([o,v,s])=>s==4?h.setUint32(o,v,true):h.setUint16(o,v,true));
+  out.push(new Uint8Array(h.buffer),n,d);
+  const e=new DataView(new ArrayBuffer(46));[[0,0x02014b50,4],[4,20,2],[6,20,2],[8,0,2],[10,0,2],[12,0,2],[14,0x21,2],[16,c,4],[20,d.length,4],[24,d.length,4],[28,n.length,2],[30,0,2],[32,0,2],[34,0,2],[36,0,2],[38,0,4],[42,off,4]].forEach(([o,v,s])=>s==4?e.setUint32(o,v,true):e.setUint16(o,v,true));
+  cd.push(new Uint8Array(e.buffer),n);off+=30+n.length+d.length});
+ const cs=cd.reduce((a,b)=>a+b.length,0),z=new DataView(new ArrayBuffer(22));z.setUint32(0,0x06054b50,true);z.setUint16(8,files.length,true);z.setUint16(10,files.length,true);z.setUint32(12,cs,true);z.setUint32(16,off,true);
+ return new Blob([...out,...cd,new Uint8Array(z.buffer)],{type:"application/vnd.openxmlformats-officedocument.presentationml.presentation"})}
+const NS='xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"';
+const HD='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n',E=v=>Math.round(v*9525),ex=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const GRP='<p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>';
+const clr=c=>{if(!c||c=="none")return null;c=c.replace("#","").toUpperCase();return c.length==3?c.replace(/./g,"$&$&"):c};
+const fillX=c=>clr(c)?`<a:solidFill><a:srgbClr val="${clr(c)}"/></a:solidFill>`:"<a:noFill/>";
+const lnX=(c,w,dash,arrow)=>clr(c)?`<a:ln w="${E(+w||1)}">${fillX(c)}${dash?'<a:prstDash val="dash"/>':""}${arrow?'<a:tailEnd type="triangle" w="med" len="med"/>':""}</a:ln>`:"<a:ln><a:noFill/></a:ln>";
+function runs(el,base){const o=[];const add=(txt,n)=>{if(txt==="")return;const bold=(n.getAttribute("font-weight")||base.w)>=600||(n.getAttribute("font-weight")||base.w)=="bold";o.push({t:txt,sz:+(n.getAttribute("font-size")||base.s),b:bold,c:n.getAttribute("fill")||base.c})};
+ el.childNodes.forEach(n=>{if(n.nodeType==3)add(n.nodeValue,el);else if(n.nodeName=="tspan")add(" ".repeat(Math.round((+n.getAttribute("dx")||0)/3))+n.textContent,n)});return o}
+const rx=r=>`<a:r><a:rPr lang="en-US" sz="${Math.round(r.sz*75)}" b="${r.b?1:0}" dirty="0">${fillX(r.c)}<a:latin typeface="Arial"/><a:cs typeface="Arial"/></a:rPr><a:t>${ex(r.t)}</a:t></a:r>`;
+const bodyX=(paras,al,anc,ins)=>`<p:txBody><a:bodyPr wrap="none" lIns="${ins||0}" tIns="${ins?E(4):0}" rIns="0" bIns="0" anchor="${anc}"><a:noAutofit/></a:bodyPr><a:lstStyle/>${paras.map(p=>`<a:p><a:pPr algn="${al}"/>${p.map(rx).join("")}</a:p>`).join("")}</p:txBody>`;
+function svgToSlide(svg){const d=new DOMParser().parseFromString(svg,"image/svg+xml").documentElement,W=+d.getAttribute("width");let id=1,o="";const A=(n,k)=>n.getAttribute(k),N=(n,k)=>+n.getAttribute(k)||0;
+ const sp=(nm,x,y,w,h,geom,fill,ln,body,extra)=>{id++;return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="${ex(nm)} ${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm${extra||""}><a:off x="${E(x)}" y="${E(y)}"/><a:ext cx="${E(w)}" cy="${E(h)}"/></a:xfrm>${geom}${fill}${ln}</p:spPr>${body||""}</p:sp>`};
+ const geomR=(n,w,h)=>{const r=N(n,"rx");return r?`<a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val ${Math.min(50000,Math.round(r/Math.min(w,h)*100000))}"/></a:avLst></a:prstGeom>`:'<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>'};
+ const rect=n=>{const x=N(n,"x"),y=N(n,"y"),w=N(n,"width"),h=N(n,"height");return sp("Rectangle",x,y,w,h,geomR(n,w,h),fillX(A(n,"fill")),lnX(A(n,"stroke"),A(n,"stroke-width"),A(n,"stroke-dasharray")))};
+ const line=n=>{const x1=N(n,"x1"),y1=N(n,"y1"),x2=N(n,"x2"),y2=N(n,"y2");id++;return `<p:cxnSp><p:nvCxnSpPr><p:cNvPr id="${id}" name="Line ${id}"/><p:cNvCxnSpPr/><p:nvPr/></p:nvCxnSpPr><p:spPr><a:xfrm${x2<x1?' flipH="1"':""}${y2<y1?' flipV="1"':""}><a:off x="${E(Math.min(x1,x2))}" y="${E(Math.min(y1,y2))}"/><a:ext cx="${E(Math.abs(x2-x1))}" cy="${E(Math.abs(y2-y1))}"/></a:xfrm><a:prstGeom prst="line"><a:avLst/></a:prstGeom>${lnX(A(n,"stroke"),A(n,"stroke-width"),A(n,"stroke-dasharray"),A(n,"marker-end"))}</p:spPr></p:cxnSp>`};
+ const text=n=>{const fs=N(n,"font-size")||11,rs=runs(n,{s:fs,w:A(n,"font-weight")||400,c:A(n,"fill")});if(!rs.length)return"";const est=rs.reduce((a,r)=>a+r.t.length*r.sz*(r.b?.6:.55),0),mid=A(n,"text-anchor")=="middle",cen=A(n,"dominant-baseline")=="central",x=N(n,"x"),y=N(n,"y"),yc=cen?y:y-fs*.32,w=est+fs*2,h=fs*1.4,t=A(n,"transform"),m=t&&/rotate\((-?[\d.]+)/.exec(t),ro=m?` rot="${(((+m[1])%360+360)%360)*60000}"`:"";
+  return sp("Text",mid?x-w/2:x,yc-h/2,w,h,'<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>',"<a:noFill/>","<a:ln><a:noFill/></a:ln>",bodyX([rs],mid?"ctr":"l","ctr"),ro).replace("<p:cNvSpPr/>",'<p:cNvSpPr txBox="1"/>')};
+ const grp=g=>{const k=[...g.children];if(g.hasAttribute("data-n")){const r=k.find(c=>c.nodeName=="rect"),ls=k.filter(c=>c.nodeName=="text"),x=N(r,"x"),y=N(r,"y"),w=N(r,"width"),h=N(r,"height"),fs=N(ls[0]||r,"font-size")||11;
+   return sp("Text field",x,y,w,h,geomR(r,w,h),fillX(A(r,"fill")),lnX(A(r,"stroke"),A(r,"stroke-width")),bodyX(ls.map(l=>[{t:l.textContent,sz:fs,b:false,c:"#1B1B1B"}]),"l","t",E(6)))}
+  const c=k.find(q=>q.nodeName=="circle"&&A(q,"fill")!="none"),ts=k.filter(q=>q.nodeName=="text");let s="";
+  if(c){const cx=N(c,"cx"),cy=N(c,"cy"),r=N(c,"r"),code=ts[0];s+=sp("Event",cx-r,cy-r,2*r,2*r,'<a:prstGeom prst="ellipse"><a:avLst/></a:prstGeom>',fillX(A(c,"fill")),"<a:ln><a:noFill/></a:ln>",bodyX([[{t:code.textContent,sz:N(code,"font-size"),b:true,c:"#FFFFFF"}]],"ctr","ctr"));ts.slice(1).forEach(q=>s+=text(q))}return s};
+ const walk=ns=>[...ns].forEach(n=>{if(n.hasAttribute("data-hit"))return;const t=n.nodeName;if(t=="rect"){if(N(n,"width")<W)o+=rect(n)}else if(t=="line")o+=line(n);else if(t=="text")o+=text(n);else if(t=="circle"){const r=N(n,"r");if(A(n,"fill")!="none")o+=sp("Dot",N(n,"cx")-r,N(n,"cy")-r,2*r,2*r,'<a:prstGeom prst="ellipse"><a:avLst/></a:prstGeom>',fillX(A(n,"fill")),"<a:ln><a:noFill/></a:ln>")}else if(t=="g"){if(n.hasAttribute("data-n")||n.hasAttribute("data-e"))o+=grp(n);else walk(n.children)}});walk(d.children);
+ return HD+`<p:sld ${NS}><p:cSld><p:bg><p:bgPr><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:effectLst/></p:bgPr></p:bg><p:spTree>${GRP}${o}</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>`}
+function pptx(svgs){const f=[],W=12192000,H=Math.round(+/height="(\d+)"/.exec(svgs[0])[1]*9525),n=svgs.length,R=(i,t,tg)=>`<Relationship Id="rId${i}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/${t}" Target="${tg}"/>`,RS=x=>HD+`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${x}</Relationships>`;
+ const th=["dk1:1B1B1B","lt1:FFFFFF","dk2:0A2540","lt2:EEF2F6","accent1:0072BC","accent2:F26B1D","accent3:7B3FA0","accent4:C8102E","accent5:1A9E8F","accent6:6B7A8C","hlink:0072BC","folHlink:7B3FA0"].map(s=>{const[k,v]=s.split(":");return`<a:${k}><a:srgbClr val="${v}"/></a:${k}>`}).join(""),sf='<a:solidFill><a:schemeClr val="phClr"/></a:solidFill>',fnt='<a:latin typeface="Arial"/><a:ea typeface=""/><a:cs typeface=""/>';
+ f.push({n:"[Content_Types].xml",d:HD+`<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/><Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/><Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>${svgs.map((_,i)=>`<Override PartName="/ppt/slides/slide${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`).join("")}</Types>`});
+ f.push({n:"_rels/.rels",d:RS(R(1,"officeDocument","ppt/presentation.xml"))});
+ f.push({n:"ppt/presentation.xml",d:HD+`<p:presentation ${NS}><p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst><p:sldIdLst>${svgs.map((_,i)=>`<p:sldId id="${256+i}" r:id="rId${i+2}"/>`).join("")}</p:sldIdLst><p:sldSz cx="${W}" cy="${H}"/><p:notesSz cx="6858000" cy="9144000"/></p:presentation>`});
+ f.push({n:"ppt/_rels/presentation.xml.rels",d:RS(R(1,"slideMaster","slideMasters/slideMaster1.xml")+svgs.map((_,i)=>R(i+2,"slide",`slides/slide${i+1}.xml`)).join("")+R(n+2,"theme","theme/theme1.xml"))});
+ f.push({n:"ppt/slideMasters/slideMaster1.xml",d:HD+`<p:sldMaster ${NS}><p:cSld><p:bg><p:bgRef idx="1001"><a:schemeClr val="bg1"/></p:bgRef></p:bg><p:spTree>${GRP}</p:spTree></p:cSld><p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/><p:sldLayoutIdLst><p:sldLayoutId id="2147483649" r:id="rId1"/></p:sldLayoutIdLst><p:txStyles><p:titleStyle/><p:bodyStyle/><p:otherStyle/></p:txStyles></p:sldMaster>`});
+ f.push({n:"ppt/slideMasters/_rels/slideMaster1.xml.rels",d:RS(R(1,"slideLayout","../slideLayouts/slideLayout1.xml")+R(2,"theme","../theme/theme1.xml"))});
+ f.push({n:"ppt/slideLayouts/slideLayout1.xml",d:HD+`<p:sldLayout ${NS} type="blank" preserve="1"><p:cSld name="Blank"><p:spTree>${GRP}</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sldLayout>`});
+ f.push({n:"ppt/slideLayouts/_rels/slideLayout1.xml.rels",d:RS(R(1,"slideMaster","../slideMasters/slideMaster1.xml"))});
+ f.push({n:"ppt/theme/theme1.xml",d:HD+`<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="Incident Timeline"><a:themeElements><a:clrScheme name="Incident Timeline">${th}</a:clrScheme><a:fontScheme name="Incident Timeline"><a:majorFont>${fnt}</a:majorFont><a:minorFont>${fnt}</a:minorFont></a:fontScheme><a:fmtScheme name="Incident Timeline"><a:fillStyleLst>${sf+sf+sf}</a:fillStyleLst><a:lnStyleLst>${`<a:ln w="9525">${sf}</a:ln>`.repeat(3)}</a:lnStyleLst><a:effectStyleLst>${"<a:effectStyle><a:effectLst/></a:effectStyle>".repeat(3)}</a:effectStyleLst><a:bgFillStyleLst>${sf+sf+sf}</a:bgFillStyleLst></a:fmtScheme></a:themeElements></a:theme>`});
+ svgs.forEach((s,i)=>{f.push({n:`ppt/slides/slide${i+1}.xml`,d:svgToSlide(s)});f.push({n:`ppt/slides/_rels/slide${i+1}.xml.rels`,d:RS(R(1,"slideLayout","../slideLayouts/slideLayout1.xml"))})});
+ return zip(f)}
+$("#ppt").onclick=()=>{try{dl(pptx([render(S,S.span,null)]),slug()+"_"+S.span+".pptx")}catch(e){$("#st").textContent=String(e)}draw()};
+$("#ppta").onclick=()=>{try{dl(pptx(Object.keys(PRE).map(k=>render(S,k,null))),slug()+"_all_spans.pptx")}catch(e){$("#st").textContent=String(e)}draw()};
+
+document.querySelector("#logo").innerHTML="Klicki"+[..."BuntiTimeline"].map((c,i)=>i<5?`<span style="color:${["#F26B1D","#4DB3FF","#2BD4B4","#C58BFF","#FF5C6C"][i]}">${c}</span>`:c).join("");
+init();
+</script></body></html>
