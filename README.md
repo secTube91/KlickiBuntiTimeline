@@ -21,8 +21,7 @@ Build incident timelines by clicking: one row per system, lateral-movement arrow
 6. [Save file format](#save-file-format)
 7. [Example](#example)
 8. [Repository layout](#repository-layout)
-9. [Companion CLI (PPTX generator)](#companion-cli-pptx-generator)
-10. [Limitations](#limitations)
+9. [Limitations](#limitations)
 
 ---
 
@@ -231,13 +230,6 @@ examples/
   Example_Lateral_Movement.timeline.json
 ```
 
----
-
-## Companion CLI (PPTX generator)
-
-The folder `incident-timeline-tool` (suggested name `cli/`) contains a separate Node.js command-line tool that generates PowerPoint timeline templates from a configuration file: any number of systems, optional network segments, free time spans, up to 40 systems per slide, event/IOC tables and an icon library. It is independent of the browser tool. See its own README for installation (`npm install`) and the configuration examples.
-
----
 
 ## Limitations
 
